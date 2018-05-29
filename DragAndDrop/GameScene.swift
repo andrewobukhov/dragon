@@ -8,80 +8,189 @@
 
 import SpriteKit
 import GameplayKit
+import AVFoundation
 
 class GameScene: SKScene {
     
-    private var label : SKLabelNode?
-    private var spinnyNode : SKShapeNode?
+    private var player : SKSpriteNode?
+    
+    private var boxes = [SKSpriteNode]()
+    
+    private var movableNode : SKNode?
+    
+    private var currentLetter = ""
+    
+    private var letters = ["Э", "И", "У", "Ы", "А", "О", ""]
+    
+    private let successPhrases = ["Молодец", "У тебя хорошо получается"]
+    
+    private let faildPhrases =  ["Ошибочка", "Ой, Не туда!"]
+    
+    private let boxSize = CGSize(width: 88, height: 66)
     
     override func didMove(to view: SKView) {
+        generatePlayer()
+        generateBoxes()
         
-        // Get label node from scene and store it for use later
-        self.label = self.childNode(withName: "//helloLabel") as? SKLabelNode
-        if let label = self.label {
-            label.alpha = 0.0
-            label.run(SKAction.fadeIn(withDuration: 2.0))
-        }
+        shuffleLetters()
+        reinit()
+    }
+    
+    func speakPhrase(phrases: [String]) {
+        speak(text: phrases[GKRandomSource.sharedRandom().nextInt(upperBound: phrases.count)])
+    }
+    
+    func generatePlayer() {
+        guard let player = self.childNode(withName: "player") as? SKSpriteNode else {return}
         
-        // Create shape node to use during mouse interaction
-        let w = (self.size.width + self.size.height) * 0.05
-        self.spinnyNode = SKShapeNode.init(rectOf: CGSize.init(width: w, height: w), cornerRadius: w * 0.3)
+        self.player = player
+        player.zPosition = 20
         
-        if let spinnyNode = self.spinnyNode {
-            spinnyNode.lineWidth = 2.5
-            
-            spinnyNode.run(SKAction.repeatForever(SKAction.rotate(byAngle: CGFloat(Double.pi), duration: 1)))
-            spinnyNode.run(SKAction.sequence([SKAction.wait(forDuration: 0.5),
-                                              SKAction.fadeOut(withDuration: 0.5),
-                                              SKAction.removeFromParent()]))
+        let shift: CGFloat = 15
+        
+        let sequence =  [SKAction.moveBy(x: shift, y: shift, duration: 1),
+                         SKAction.moveBy(x: shift*2, y: -shift, duration: 1),
+                         SKAction.moveBy(x: -shift * 3, y: 0, duration: 1)]
+        
+        player.run(SKAction.repeatForever(SKAction.sequence(sequence)))
+        
+        speak(text: "Привет! Я дракон - Гена. Давай играть!")
+    }
+    
+    func generateBoxes() {
+        let count = letters.count
+        let width = Int(self.size.width)
+        
+        let shift = (width - (Int(boxSize.width) * count)) / count
+        let staticShift = 5
+        
+        for i in 0 ..< count {
+            let x = i * (Int(boxSize.width) + shift) + staticShift
+            let size = CGSize(width: boxSize.width, height: boxSize.height)
+            let pos = CGPoint(x: x, y: 2)
+            let box = generateBox(letter: letters[i], size: size, position: pos)
+            self.boxes.append(box)
         }
     }
     
+    func generateBox(letter: String, size: CGSize, position: CGPoint) -> SKSpriteNode {
+        let box = SKSpriteNode(imageNamed: "box")
+        box.name = "box"
+        box.anchorPoint = CGPoint(x: 0, y: 0)
+        box.size = size
+        box.position = position
+        box.color = .cyan
+        box.zPosition = 10
+        
+        let later = addLetter(letter: letter, position: CGPoint(x: size.width / 2 - 3, y: size.height / 2 - 10))
+        box.addChild(later)
+        
+        self.addChild(box)
+        return box
+    }
     
-    func touchDown(atPoint pos : CGPoint) {
-        if let n = self.spinnyNode?.copy() as! SKShapeNode? {
-            n.position = pos
-            n.strokeColor = SKColor.green
-            self.addChild(n)
+    func addLetter(letter: String, position: CGPoint) -> SKLabelNode {
+        let letter = SKLabelNode(text: letter)
+        letter.name = "letter"
+        letter.fontSize = 23
+        letter.fontName = "Arial Bold"
+        letter.fontColor = .red
+        letter.position = position
+        letter.zPosition = 1
+        return letter
+    }
+    
+    func shuffleLetters() {
+        let shuffled = GKRandomSource.sharedRandom().arrayByShufflingObjects(in: self.letters)
+        
+        for (index, box) in boxes.enumerated() {
+            if let letter = box.childNode(withName: "letter") as? SKLabelNode {
+                letter.text = shuffled[index] as? String
+                letter.fontColor = .red
+            }
         }
     }
     
-    func touchMoved(toPoint pos : CGPoint) {
-        if let n = self.spinnyNode?.copy() as! SKShapeNode? {
-            n.position = pos
-            n.strokeColor = SKColor.blue
-            self.addChild(n)
-        }
+    func reinit() {
+        setNewCurrentLetter()
+        setInitPlayerPosition()
     }
     
-    func touchUp(atPoint pos : CGPoint) {
-        if let n = self.spinnyNode?.copy() as! SKShapeNode? {
-            n.position = pos
-            n.strokeColor = SKColor.red
-            self.addChild(n)
-        }
+    func setNewCurrentLetter() {
+        self.currentLetter = self.letters[GKRandomSource.sharedRandom().nextInt(upperBound: self.letters.count)]
+    }
+    
+    func setInitPlayerPosition() {
+        player?.position = CGPoint(x: self.size.width / 2 - 30, y: self.size.height / 2 + 100)
+    }
+    
+    func speak(text: String) {
+        let utterance = AVSpeechUtterance(string: text + "!")
+        utterance.voice = AVSpeechSynthesisVoice(language: "ru-RUS")
+        
+        let synthesizer = AVSpeechSynthesizer()
+        synthesizer.pauseSpeaking(at: .word)
+        synthesizer.speak(utterance)
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        if let label = self.label {
-            label.run(SKAction.init(named: "Pulse")!, withKey: "fadeInOut")
+        if let touch = touches.first {
+            let location = touch.location(in: self)
+            if self.player!.contains(location) {
+                speak(text: currentLetter)
+                movableNode = self.player
+                movableNode!.position = location
+            }
         }
-        
-        for t in touches { self.touchDown(atPoint: t.location(in: self)) }
     }
     
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        for t in touches { self.touchMoved(toPoint: t.location(in: self)) }
+        if let touch = touches.first, movableNode != nil {
+            movableNode!.position = touch.location(in: self)
+            let location = touch.location(in: self)
+            
+            for box in boxes {
+                if let letter = box.childNode(withName: "letter") as? SKLabelNode {
+                    if box.contains(location) {
+                        letter.fontColor = .green
+                    }
+                    else{
+                        letter.fontColor = .red
+                    }
+                }
+            }
+        }
     }
     
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        for t in touches { self.touchUp(atPoint: t.location(in: self)) }
+        if let touch = touches.first, movableNode != nil {
+            movableNode!.position = touch.location(in: self)
+            movableNode = nil
+            
+            let location = touch.location(in: self)
+            
+            if let box = boxes.first(where: {$0.contains(location)}) {
+                if let letter = box.childNode(withName: "letter") as? SKLabelNode {
+                    
+                    if letter.text == currentLetter {
+                        speakPhrase(phrases: successPhrases)
+                    }
+                    else{
+                        speakPhrase(phrases: faildPhrases)
+                    }
+                    
+                    reinit()
+                }
+            } else {
+                setInitPlayerPosition()
+            }
+            
+        }
     }
     
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
-        for t in touches { self.touchUp(atPoint: t.location(in: self)) }
+        movableNode = nil
     }
-    
     
     override func update(_ currentTime: TimeInterval) {
         // Called before each frame is rendered
