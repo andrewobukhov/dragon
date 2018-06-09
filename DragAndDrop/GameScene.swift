@@ -12,123 +12,108 @@ import AVFoundation
 
 class GameScene: SKScene {
     
-    private var player : SKSpriteNode?
+    private var capitan : SKSpriteNode?
     
-    private var boxes = [SKSpriteNode]()
-    
-    private var movableNode : SKNode?
+    private var grounds = [SKSpriteNode]()
     
     private var currentLetter = ""
     
-    private var letters = ["Э", "И", "У", "Ы", "А", "О", ""]
+    private var knownLetters = [String]()
+    
+    private var letters = [String]()
     
     private let successPhrases = ["Молодец", "У тебя хорошо получается"]
     
     private let faildPhrases =  ["Ошибочка", "Ой, Не туда!"]
     
-    private let boxSize = CGSize(width: 88, height: 66)
-    
     override func didMove(to view: SKView) {
-        generatePlayer()
-        generateBoxes()
-        
+        initCapitan()
+        initGrounds()
+      
         shuffleLetters()
-        reinit()
+        //reinit()
+    }
+    
+    func initCapitan() {
+        guard let capitan = self.childNode(withName: "capitan") as? SKSpriteNode else {return}
+        self.capitan = capitan
+        
+        //moveCapitan(location: CGPoint(x: 400, y: 200), moveDuration: 3)
+    }
+    
+    func moveGround(node: SKSpriteNode, shift: CGFloat, duration: TimeInterval) {
+        let sequence =  [SKAction.moveBy(x: 0, y: shift, duration: duration),
+                         SKAction.moveBy(x: 0, y: -shift, duration: duration)]
+        
+        node.run(SKAction.repeatForever(SKAction.sequence(sequence)))
     }
     
     func speakPhrase(phrases: [String]) {
         speak(text: phrases[GKRandomSource.sharedRandom().nextInt(upperBound: phrases.count)])
     }
     
-    func generatePlayer() {
-        guard let player = self.childNode(withName: "player") as? SKSpriteNode else {return}
-        
-        self.player = player
-        player.zPosition = 20
-        
-        let shift: CGFloat = 15
-        
-        let sequence =  [SKAction.moveBy(x: shift, y: shift, duration: 1),
-                         SKAction.moveBy(x: shift*2, y: -shift, duration: 1),
-                         SKAction.moveBy(x: -shift * 3, y: 0, duration: 1)]
-        
-        player.run(SKAction.repeatForever(SKAction.sequence(sequence)))
-        
-        speak(text: "Привет! Я дракон - Гена. Давай играть!")
-    }
-    
-    func generateBoxes() {
-        let count = letters.count
-        let width = Int(self.size.width)
-        
-        let shift = (width - (Int(boxSize.width) * count)) / count
-        let staticShift = 5
-        
-        for i in 0 ..< count {
-            let x = i * (Int(boxSize.width) + shift) + staticShift
-            let size = CGSize(width: boxSize.width, height: boxSize.height)
-            let pos = CGPoint(x: x, y: 2)
-            let box = generateBox(letter: letters[i], size: size, position: pos)
-            self.boxes.append(box)
-        }
-    }
-    
-    func generateBox(letter: String, size: CGSize, position: CGPoint) -> SKSpriteNode {
-        let box = SKSpriteNode(imageNamed: "box")
-        box.name = "box"
-        box.anchorPoint = CGPoint(x: 0, y: 0)
-        box.size = size
-        box.position = position
-        box.color = .cyan
-        box.zPosition = 10
-        
-        let later = addLetter(letter: letter, position: CGPoint(x: size.width / 2 - 3, y: size.height / 2 - 10))
-        box.addChild(later)
-        
-        self.addChild(box)
-        return box
-    }
-    
-    func addLetter(letter: String, position: CGPoint) -> SKLabelNode {
-        let letter = SKLabelNode(text: letter)
-        letter.name = "letter"
-        letter.fontSize = 23
-        letter.fontName = "Arial Bold"
-        letter.fontColor = .red
-        letter.position = position
-        letter.zPosition = 1
-        return letter
-    }
-    
-    func shuffleLetters() {
-        let shuffled = GKRandomSource.sharedRandom().arrayByShufflingObjects(in: self.letters)
-        
-        for (index, box) in boxes.enumerated() {
-            if let letter = box.childNode(withName: "letter") as? SKLabelNode {
-                letter.text = shuffled[index] as? String
-                letter.fontColor = .red
+    func initGrounds() {
+        for i in 0 ..< 4 {
+            if let g = self.childNode(withName: "ground\(i + 1)") as? SKSpriteNode {
+                moveGround(node: g, shift: 50, duration: (Double(i) / 2.0) + 1)
+                grounds.append(g)
             }
         }
     }
     
-    func reinit() {
+    func moveCapitan(x: CGFloat, moveDuration: TimeInterval) {
+        if capitan?.action(forKey: "walk") == nil {
+            let animation = SKAction.repeatForever(SKAction.animate(with: getTexturesByAtlas("walk"), timePerFrame: 0.1))
+            capitan?.run(animation, withKey: "walk")
+        }
+        
+        let moveAction = SKAction.moveTo(x: x, duration: moveDuration)
+        
+        let doneAction = SKAction.run({ [weak self] in
+            self?.capitan?.removeAllActions()
+        })
+        
+        let moveActionWithDone = SKAction.sequence([moveAction, doneAction])
+        capitan?.run(moveActionWithDone, withKey: "capitanMoving")
+    }
+    
+    
+    func getTexturesByAtlas(_ atlasName: String) -> [SKTexture] {
+       let atlas = SKTextureAtlas(named: atlasName)
+       return atlas.textureNames.sorted().map { name in atlas.textureNamed(name) }
+    }
+    
+    func shuffleLetters() {
+        let allLetters = ["Э", "И", "У", "Ы", "А", "О"]
+        
+        let shuffled = GKRandomSource.sharedRandom().arrayByShufflingObjects(in: allLetters).prefix(grounds.count)
+    
+        for (index, node) in grounds.enumerated() {
+            if let letter = node.childNode(withName: "letter") as? SKLabelNode {
+                letter.text = shuffled[index] as? String
+                self.letters.append(letter.text!)
+                 print(letter.text!, self.letters)
+            }
+        }
+        
         setNewCurrentLetter()
-        setInitPlayerPosition()
     }
     
     func setNewCurrentLetter() {
-        self.currentLetter = self.letters[GKRandomSource.sharedRandom().nextInt(upperBound: self.letters.count)]
+        let letters = self.letters.filter { !knownLetters.contains($0) }
+        
+        if(!letters.isEmpty){
+            self.currentLetter = letters[GKRandomSource.sharedRandom().nextInt(upperBound: letters.count)]
+        }
     }
     
-    func setInitPlayerPosition() {
-        player?.position = CGPoint(x: self.size.width / 2 - 30, y: self.size.height / 2 + 100)
-    }
+    let synthesizer = AVSpeechSynthesizer()
     
     func speak(text: String) {
         let utterance = AVSpeechUtterance(string: text + "!")
         utterance.voice = AVSpeechSynthesisVoice(language: "ru-RUS")
         
-        let synthesizer = AVSpeechSynthesizer()
+        //let synthesizer = AVSpeechSynthesizer()
         synthesizer.pauseSpeaking(at: .word)
         synthesizer.speak(utterance)
     }
@@ -136,60 +121,36 @@ class GameScene: SKScene {
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         if let touch = touches.first {
             let location = touch.location(in: self)
-            if self.player!.contains(location) {
+            
+            let ground = self.grounds.first {$0.contains(location)}
+            
+            if self.capitan!.contains(location) {
                 speak(text: currentLetter)
-                movableNode = self.player
-                movableNode!.position = location
-            }
-        }
-    }
-    
-    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        if let touch = touches.first, movableNode != nil {
-            movableNode!.position = touch.location(in: self)
-            let location = touch.location(in: self)
-            
-            for box in boxes {
-                if let letter = box.childNode(withName: "letter") as? SKLabelNode {
-                    if box.contains(location) {
-                        letter.fontColor = .green
-                    }
-                    else{
-                        letter.fontColor = .red
-                    }
+            } else if let groundNode = ground {
+                guard let letterNode = groundNode.childNode(withName: "letter") as? SKLabelNode else {return}
+                
+                if letterNode.text == currentLetter {
+                    foundLetter(groundNode, letterNode: letterNode)
+                } else if letterNode.text != nil {
+                    speak(text: "Ошибка")
                 }
             }
         }
     }
     
-    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        if let touch = touches.first, movableNode != nil {
-            movableNode!.position = touch.location(in: self)
-            movableNode = nil
-            
-            let location = touch.location(in: self)
-            
-            if let box = boxes.first(where: {$0.contains(location)}) {
-                if let letter = box.childNode(withName: "letter") as? SKLabelNode {
-                    
-                    if letter.text == currentLetter {
-                        speakPhrase(phrases: successPhrases)
-                    }
-                    else{
-                        speakPhrase(phrases: faildPhrases)
-                    }
-                    
-                    reinit()
-                }
-            } else {
-                setInitPlayerPosition()
-            }
-            
-        }
-    }
+    func foundLetter(_ ground: SKSpriteNode, letterNode: SKLabelNode) {
+        speak(text: "Молодец")
+        ground.removeAllActions();
+        letterNode.text = nil
     
-    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
-        movableNode = nil
+        ground.run(SKAction.moveTo(y: CGFloat(55), duration: 1))
+        self.knownLetters.append(currentLetter)
+        
+        if(self.knownLetters.count >= self.letters.count){
+            moveCapitan(x: 500, moveDuration: 3)
+        }
+    
+        setNewCurrentLetter()
     }
     
     override func update(_ currentTime: TimeInterval) {

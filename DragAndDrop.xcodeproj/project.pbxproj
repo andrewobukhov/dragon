@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		DDB0EB5320C48060004850BD /* walk.atlas in Resources */ = {isa = PBXBuildFile; fileRef = DDB0EB5220C48060004850BD /* walk.atlas */; };
 		DDDD006420B747C400E9CD78 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDDD006320B747C400E9CD78 /* AppDelegate.swift */; };
 		DDDD006620B747C400E9CD78 /* GameScene.sks in Resources */ = {isa = PBXBuildFile; fileRef = DDDD006520B747C400E9CD78 /* GameScene.sks */; };
 		DDDD006820B747C400E9CD78 /* Actions.sks in Resources */ = {isa = PBXBuildFile; fileRef = DDDD006720B747C400E9CD78 /* Actions.sks */; };
@@ -18,6 +19,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		DDB0EB5220C48060004850BD /* walk.atlas */ = {isa = PBXFileReference; lastKnownFileType = folder.skatlas; path = walk.atlas; sourceTree = "<group>"; };
 		DDDD006020B747C400E9CD78 /* DragAndDrop.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DragAndDrop.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DDDD006320B747C400E9CD78 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		DDDD006520B747C400E9CD78 /* GameScene.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = GameScene.sks; sourceTree = "<group>"; };
@@ -60,6 +62,7 @@
 		DDDD006220B747C400E9CD78 /* DragAndDrop */ = {
 			isa = PBXGroup;
 			children = (
+				DDB0EB5220C48060004850BD /* walk.atlas */,
 				DDDD006320B747C400E9CD78 /* AppDelegate.swift */,
 				DDDD006520B747C400E9CD78 /* GameScene.sks */,
 				DDDD006720B747C400E9CD78 /* Actions.sks */,
@@ -133,6 +136,7 @@
 			files = (
 				DDDD006F20B747C400E9CD78 /* Main.storyboard in Resources */,
 				DDDD006620B747C400E9CD78 /* GameScene.sks in Resources */,
+				DDB0EB5320C48060004850BD /* walk.atlas in Resources */,
 				DDDD007120B747C500E9CD78 /* Assets.xcassets in Resources */,
 				DDDD007420B747C500E9CD78 /* LaunchScreen.storyboard in Resources */,
 				DDDD006820B747C400E9CD78 /* Actions.sks in Resources */,
