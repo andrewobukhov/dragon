@@ -11,7 +11,6 @@
 		DDB0EB5320C48060004850BD /* walk.atlas in Resources */ = {isa = PBXBuildFile; fileRef = DDB0EB5220C48060004850BD /* walk.atlas */; };
 		DDDD006420B747C400E9CD78 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDDD006320B747C400E9CD78 /* AppDelegate.swift */; };
 		DDDD006620B747C400E9CD78 /* GameScene.sks in Resources */ = {isa = PBXBuildFile; fileRef = DDDD006520B747C400E9CD78 /* GameScene.sks */; };
-		DDDD006820B747C400E9CD78 /* Actions.sks in Resources */ = {isa = PBXBuildFile; fileRef = DDDD006720B747C400E9CD78 /* Actions.sks */; };
 		DDDD006A20B747C400E9CD78 /* GameScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDDD006920B747C400E9CD78 /* GameScene.swift */; };
 		DDDD006C20B747C400E9CD78 /* GameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDDD006B20B747C400E9CD78 /* GameViewController.swift */; };
 		DDDD006F20B747C400E9CD78 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = DDDD006D20B747C400E9CD78 /* Main.storyboard */; };
@@ -25,7 +24,6 @@
 		DDDD006020B747C400E9CD78 /* DragAndDrop.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DragAndDrop.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DDDD006320B747C400E9CD78 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		DDDD006520B747C400E9CD78 /* GameScene.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = GameScene.sks; sourceTree = "<group>"; };
-		DDDD006720B747C400E9CD78 /* Actions.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = Actions.sks; sourceTree = "<group>"; };
 		DDDD006920B747C400E9CD78 /* GameScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameScene.swift; sourceTree = "<group>"; };
 		DDDD006B20B747C400E9CD78 /* GameViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameViewController.swift; sourceTree = "<group>"; };
 		DDDD006E20B747C400E9CD78 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -68,7 +66,6 @@
 				DDB0EB5220C48060004850BD /* walk.atlas */,
 				DDDD006320B747C400E9CD78 /* AppDelegate.swift */,
 				DDDD006520B747C400E9CD78 /* GameScene.sks */,
-				DDDD006720B747C400E9CD78 /* Actions.sks */,
 				DDDD006920B747C400E9CD78 /* GameScene.swift */,
 				DDDD006B20B747C400E9CD78 /* GameViewController.swift */,
 				DDDD006D20B747C400E9CD78 /* Main.storyboard */,
@@ -143,7 +140,6 @@
 				DDB0EB5320C48060004850BD /* walk.atlas in Resources */,
 				DDDD007120B747C500E9CD78 /* Assets.xcassets in Resources */,
 				DDDD007420B747C500E9CD78 /* LaunchScreen.storyboard in Resources */,
-				DDDD006820B747C400E9CD78 /* Actions.sks in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

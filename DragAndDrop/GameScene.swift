@@ -16,6 +16,8 @@ class GameScene: SKScene {
     
     private var box : SKSpriteNode?
     
+    private var master : SKNode?
+    
     private var grounds = [SKSpriteNode]()
     
     private var currentLetter = ""
@@ -33,25 +35,38 @@ class GameScene: SKScene {
     }
     
     func reinit() {
+        guard let master = self.childNode(withName: "master") else {return}
+        self.master = master
+        
         initCapitan()
         initGrounds()
         initBox()
         shuffleLetters()
+        
+        demo()
     }
     
     func initCapitan() {
-        guard let capitan = self.childNode(withName: "capitan") as? SKSpriteNode else {return}
+        guard let capitan = getChild( "capitan") as? SKSpriteNode else {
+            print("capitan NOT found")
+            return
+            
+        }
         self.capitan = capitan
-        self.capitan?.position = CGPoint(x: 53, y: 127)
+        self.capitan?.position = CGPoint(x: 53, y: 100)
         
         
+        restCapitan()
+    }
+    
+    func restCapitan() {
         let animation = SKAction.repeatForever(SKAction.animate(with: getTexturesByAtlas("rest"), timePerFrame: 0.1))
         self.capitan?.removeAllActions()
         self.capitan?.run(animation, withKey: "rest")
     }
     
     func initBox() {
-        guard let box = self.childNode(withName: "box") as? SKSpriteNode else {return}
+        guard let box = getChild( "box") as? SKSpriteNode else {return}
         box.texture = SKTexture(imageNamed: "dark-wood-closed")
         self.box = box
     }
@@ -67,11 +82,15 @@ class GameScene: SKScene {
         speak(text: phrases[GKRandomSource.sharedRandom().nextInt(upperBound: phrases.count)])
     }
     
+    func getChild(_ name: String) -> SKNode? {
+        return self.master?.childNode(withName: name)
+    }
+    
     func initGrounds() {
         self.grounds = []
         for i in 0 ..< 4 {
-            if let g = self.childNode(withName: "ground\(i + 1)") as? SKSpriteNode {
-                moveGround(node: g, shift: 50, duration: (Double(i) / 2.0) + 1)
+            if let g = getChild("ground\(i + 1)") as? SKSpriteNode {
+                moveGround(node: g, shift: 25, duration: (Double(i) / 2.0) + 1)
                 grounds.append(g)
             }
         }
@@ -106,9 +125,9 @@ class GameScene: SKScene {
         if(!letters.isEmpty){
             self.currentLetter = letters[GKRandomSource.sharedRandom().nextInt(upperBound: letters.count)]
             
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: {
-                self.speak(text: self.currentLetter)
-            })
+            //DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: {
+            //    self.speak(text: self.currentLetter)
+           // })
         }
     }
     
@@ -125,7 +144,7 @@ class GameScene: SKScene {
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         if let touch = touches.first {
-            let location = touch.location(in: self)
+            let location = touch.location(in: self.master!)
             
             let ground = self.grounds.first {$0.contains(location)}
             
@@ -148,7 +167,7 @@ class GameScene: SKScene {
         ground.removeAllActions();
         letterNode.text = nil
     
-        ground.run(SKAction.moveTo(y: CGFloat(55), duration: 1))
+        ground.run(SKAction.moveTo(y: CGFloat(44), duration: 1))
         self.knownLetters.append(currentLetter)
         
         if(self.knownLetters.count >= self.letters.count){
@@ -166,7 +185,7 @@ class GameScene: SKScene {
         }
         
         let moveActionForward = SKAction.moveTo(x: 500, duration: 3)
-        let moveActionTop = SKAction.move(to: CGPoint(x: 560, y: 141), duration: 1)
+        let moveActionTop = SKAction.move(to: CGPoint(x: 602, y: 131), duration: 1)
         
         let doneAction = SKAction.run({ [weak self] in
             self?.goToNextLevel()
@@ -177,14 +196,50 @@ class GameScene: SKScene {
     }
     
     func goToNextLevel() {
-        guard let box = self.childNode(withName: "box") as? SKSpriteNode else {return}
+        guard let box = getChild( "box") as? SKSpriteNode else {return}
         box.texture = SKTexture(imageNamed: "dark-wood-open")
         self.capitan?.removeAllActions()
         self.speak(text: "Ура. Ты выйграл!")
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: {
-            self.reinit()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: {
+            
+            //self.reinit()
+            self.moveMaster(-660)
+            
+            if self.capitan?.action(forKey: "walk") == nil {
+                let animation = SKAction.repeatForever(SKAction.animate(with: self.getTexturesByAtlas("walk"), timePerFrame: 0.1))
+                self.capitan?.run(animation, withKey: "walk")
+            }
+            
+            let move = SKAction.move(to: CGPoint(x: 660, y: 131), duration: 1)
+            let moveToBottom = SKAction.move(to: CGPoint(x: 750, y: 100), duration: 1)
+            
+            let doneAction = SKAction.run({ [weak self] in
+                self?.restCapitan()
+            })
+            
+            self.capitan?.run(SKAction.sequence([move, moveToBottom, doneAction]))
         })
+    }
+    
+    func demo() {
+        DispatchQueue.main.async {
+            self.speak(text: "Привет, мой друг! Тебе нужно добраться до сундука на другой стороне острова. Помоги капитану отгадать все буквы.")
+        }
+    
+        let offset:CGFloat = 667 * 2
+        let actions = SKAction.sequence([SKAction.moveTo(x: -offset, duration: 5), SKAction.moveTo(x: 0, duration: 5)])
+        
+        master?.run(actions)
+        
+    }
+    
+    func moveMaster(_ offset: CGFloat) {
+        
+       
+        master?.run( SKAction.moveTo(x: offset, duration: 3))
+        //let p = self.master!.position
+        //self.master?.position = CGPoint(x: p.x + offset, y: p.y)
     }
     
     func onFinish() {
